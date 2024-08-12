@@ -1,0 +1,61 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+
+
+# Load the dataset (make sure the path is correct)
+data = pd.read_csv('/content/heart.csv')
+print(data.head())
+
+# Check for missing values
+print(data.isnull().sum())
+
+# Drop any rows with missing values (if any)
+data = data.dropna()
+
+# Display summary statistics
+print(data.describe())
+
+data_encoded = pd.get_dummies(data, drop_first=True)
+
+# Visualize the correlation matrix
+plt.figure(figsize=(12, 8))
+sns.heatmap(data_encoded.corr(), annot=True, cmap='coolwarm')
+plt.show()
+
+# Feature selection based on correlation or domain knowledge
+features = data.drop(columns=['HeartDisease'])  # Assuming 'target' is the column we're predicting
+target = data['HeartDisease']  # The label column
+
+# Assuming 'features' is your DataFrame containing features
+for column in features.columns:
+    if features[column].dtype == 'object':  # Check if column is of object (string) type
+        label_encoder = LabelEncoder()
+        features[column] = label_encoder.fit_transform(features[column])
+# Split the dataset into 80% training and 20% testing
+X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
+
+# Initialize the model
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.2f}')
+
+# Display the classification report
+print(classification_report(y_test, y_pred))
+
+# Display the confusion matrix
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues')
+plt.show()
+
+
